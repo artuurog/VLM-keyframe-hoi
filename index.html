@@ -1,437 +1,879 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="description"
-        content="">
-  <meta name="keywords" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+    <meta charset="utf-8">
+    <meta name="description" content="Learning Long-Horizon Robotic Manipulation from Human Videos via Interaction-Aware Keyframe Selection and Vision-Language Planning">
+    <meta name="keywords" content="robot learning, manipulation, keyframe selection, vision-language models">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning Long-Horizon Robotic Manipulation</title>
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src=""></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    function gtag() {
-      dataLayer.push(arguments);
-    }
+    <link rel="stylesheet" href="./static/css/bulma.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="./static/css/index.css">
+    <link rel="icon" href="./static/images/favicon.svg">
 
-    gtag('js', new Date());
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="./static/js/fontawesome.all.min.js"></script>
+    <script src="./static/js/bulma-carousel.min.js"></script>
+    <script src="./static/js/bulma-slider.min.js"></script>
+    <script src="./static/js/index.js"></script>
 
-    gtag('config', 'G-PYVRSFMDRL');
-  </script>
+    <style>
+        :root {
+            --ink: #0f0f0f;
+            --paper: #f7f5f0;
+            --accent: #c0392b;
+            --accent-light: #e8d5d3;
+            --mid: #5a5a5a;
+            --rule: #d8d4cc;
+            --code-bg: #1a1a2e;
+        }
 
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-        rel="stylesheet">
+        * {
+            box-sizing: border-box;
+        }
 
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/favicon.svg">
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            font-size: 16px;
+            line-height: 1.7;
+        }
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/bulma-carousel.min.js"></script>
-  <script src="./static/js/bulma-slider.min.js"></script>
-  <script src="./static/js/index.js"></script>
+        /* ── HERO ── */
+        .hero {
+            background: var(--paper);
+            border-bottom: 1px solid var(--rule);
+            padding-top: 4rem;
+            padding-bottom: 3rem;
+        }
+
+        .publication-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.1rem !important;
+            line-height: 1.25 !important;
+            color: var(--ink) !important;
+            font-weight: 400 !important;
+            letter-spacing: -0.01em;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .publication-authors {
+            font-size: 1.05rem;
+            color: var(--mid);
+            margin-bottom: 0.4rem;
+        }
+
+            .publication-authors a {
+                color: var(--accent);
+                text-decoration: none;
+                border-bottom: 1px solid var(--accent-light);
+                transition: border-color 0.2s;
+            }
+
+                .publication-authors a:hover {
+                    border-color: var(--accent);
+                }
+
+        /* ── NAV PILLS ── */
+        .publication-links .button.is-rounded {
+            background: white;
+            border: 1.5px solid var(--ink);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: background 0.18s, color 0.18s;
+            box-shadow: none;
+        }
+
+            .publication-links .button.is-rounded:hover {
+                background: var(--ink);
+                color: white;
+                border-color: var(--ink);
+            }
+
+        /* ── SECTION WRAPPER ── */
+        .paper-section {
+            padding: 4rem 0;
+            border-bottom: 1px solid var(--rule);
+        }
+
+            .paper-section:last-of-type {
+                border-bottom: none;
+            }
+
+        /* ── SECTION LABELS ── */
+        .section-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--ink);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        /* ── ABSTRACT TEXT ── */
+        .abstract-text p {
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* ── GRAPHIC ABSTRACT ── */
+        .graphic-abstract-wrap {
+            margin: 0 auto;
+            max-width: 900px;
+            text-align: center;
+        }
+
+            .graphic-abstract-wrap img {
+                width: 100%;
+                border: 1px solid var(--rule);
+                border-radius: 4px;
+            }
+
+        .graphic-abstract-caption {
+            font-size: 0.82rem;
+            color: var(--mid);
+            margin-top: 0.8rem;
+            font-style: italic;
+        }
+
+        /* ── METHOD STEPS ── */
+        .method-steps {
+            counter-reset: step-counter;
+        }
+
+        .method-step {
+            display: grid;
+            grid-template-columns: 3rem 1fr 1fr;
+            gap: 1.2rem;
+            margin-bottom: 2.5rem;
+            align-items: center;
+        }
+
+        .step-number {
+            counter-increment: step-counter;
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.2rem;
+            color: var(--accent-light);
+            line-height: 1;
+            padding-top: 0.1rem;
+            text-align: right;
+            user-select: none;
+        }
+
+            .step-number::before {
+                content: counter(step-counter, decimal-leading-zero);
+            }
+
+        .step-content h4 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ink);
+            margin-bottom: 0.35rem;
+        }
+
+        .step-content p {
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .method-divider {
+            border: none;
+            border-top: 1px solid var(--rule);
+            margin: 2rem 0;
+        }
+
+        /* ── VIDEO GRIDS ── */
+        .video-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+            .video-grid.cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .video-grid.cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+        @media (max-width: 768px) {
+            .video-grid.cols-2,
+            .video-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-card {
+            background: white;
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+            .video-card video {
+                width: 100%;
+                display: block;
+            }
+
+        .video-card-caption {
+            padding: 0.7rem 1rem;
+            font-size: 0.82rem;
+            color: var(--mid);
+            border-top: 1px solid var(--rule);
+            font-style: italic;
+        }
+
+        .video-card-label {
+            padding: 0.5rem 1rem 0;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        /* ── SUBSECTION ── */
+        .subsection-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mid);
+            margin-bottom: 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        /* ── BIBTEX ── */
+        .bibtex-block {
+            background: var(--code-bg);
+            color: #a8d8a8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            padding: 1.8rem 2rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .bibtex-copy-btn {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #ccc;
+            font-size: 0.72rem;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.7rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+            .bibtex-copy-btn:hover {
+                background: rgba(255,255,255,0.16);
+            }
+
+        /* ── ACKNOWLEDGEMENTS ── */
+        .ack-text {
+            font-size: 0.93rem;
+            color: var(--mid);
+            line-height: 1.8;
+        }
+
+        /* ── FOOTER ── */
+        footer.footer {
+            background: var(--ink);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.78rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+            footer.footer a {
+                color: rgba(255,255,255,0.6);
+            }
+
+        /* ── TEASER video ── */
+        .teaser-video-wrap {
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+        }
+
+            .teaser-video-wrap video {
+                width: 100%;
+                display: block;
+            }
+
+        /* inline rule accent */
+        .accent-rule {
+            display: inline-block;
+            width: 2.5rem;
+            height: 2px;
+            background: var(--accent);
+            margin-right: 0.6rem;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="navbar-brand">
-            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-            </a>
-        </div>
-        <div class="navbar-menu">
-            <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
-                <a class="navbar-item" href="https://keunhong.com">
-                    <span class="icon">
-                        <i class="fas fa-home"></i>
-                    </span>
-                </a>
-
-                <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link">
-                        More Research
-                    </a>
-                    <div class="navbar-dropdown">
-                        <a class="navbar-item" href="https://hypernerf.github.io">
-                            HyperNeRF
-                        </a>
-                        <a class="navbar-item" href="https://nerfies.github.io">
-                            Nerfies
-                        </a>
-                        <a class="navbar-item" href="https://latentfusion.github.io">
-                            LatentFusion
-                        </a>
-                        <a class="navbar-item" href="https://photoshape.github.io">
-                            PhotoShape
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </nav> -->
-
-
+    <!-- ══════════════════════════════════════
+         HERO — Title, Authors, Abstract
+    ══════════════════════════════════════ -->
     <section class="hero">
         <div class="hero-body">
             <div class="container is-max-desktop">
                 <div class="columns is-centered">
                     <div class="column has-text-centered">
-                        <h1 class="title is-1 publication-title">Title</h1>
-                        <div class="is-size-5 publication-authors">
+
+                        <h1 class="title is-1 publication-title">
+                            Learning Long-Horizon Robotic Manipulation from Human Videos via
+                            Interaction-Aware Keyframe Selection and Vision-Language Planning
+                        </h1>
+
+                        <div class="is-size-5 publication-authors" style="margin-bottom:0.6rem;">
                             <span class="author-block">
                                 <a href="https://github.com/artuurog/">Arturo Giacobbe</a><sup>1</sup>,
                             </span>
                             <span class="author-block">
-                                <a href="">Loris Roveda</a><sup>1,2</sup>,
+                                <a href="https://orcid.org/0000-0002-4427-536X">Loris Roveda</a><sup>1,2</sup>,
                             </span>
                             <span class="author-block">
-                                <a href="">Francesco Braghin</a><sup>1</sup>
+                                <a href="https://orcid.org/0000-0002-0476-4118">Francesco Braghin</a><sup>1</sup>
                             </span>
                         </div>
 
-                        <div class="is-size-5 publication-authors">
-                            <span class="author-block"><sup>1</sup>Politecnico di Milano, Milan, Italy </span>
+                        <div class="is-size-6 publication-authors" style="margin-bottom:1.5rem;">
+                            <span class="author-block"><sup>1</sup>Politecnico di Milano, Milan, Italy</span>
+                            &ensp;·&ensp;
                             <span class="author-block"><sup>2</sup>IDSIA USI SUPSI, Lugano, Switzerland</span>
                         </div>
 
-                        <div class="column has-text-centered">
-                            <div class="publication-links">
-                                <!-- PDF Link. -->
-                                <span class="link-block">
-                                    <a href="https://arxiv.org/pdf/2011.12948"
-                                       class="external-link button is-normal is-rounded is-dark">
-                                        <span class="icon">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </span>
-                                        <span>Paper</span>
-                                    </a>
-                                </span>
-                                <span class="link-block">
-                                    <a href="https://arxiv.org/abs/2011.12948"
-                                       class="external-link button is-normal is-rounded is-dark">
-                                        <span class="icon">
-                                            <i class="ai ai-arxiv"></i>
-                                        </span>
-                                        <span>arXiv</span>
-                                    </a>
-                                </span>
-                                <!-- Video Link. -->
-                                <!-- <span class="link-block">
-                                    <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
-                                       class="external-link button is-normal is-rounded is-dark">
-                                        <span class="icon">
-                                            <i class="fab fa-youtube"></i>
-                                        </span>
-                                        <span>Video</span>
-                                    </a>
-                                </span> -->
-                                <!-- Code Link. -->
-                                <span class="link-block">
-                                    <a href="https://github.com/google/nerfies"
-                                       class="external-link button is-normal is-rounded is-dark">
-                                        <span class="icon">
-                                            <i class="fab fa-github"></i>
-                                        </span>
-                                        <span>Code</span>
-                                    </a>
-                                </span>
-                                <!-- Dataset Link. -->
-                                <span class="link-block">
-                                    <a href="https://github.com/google/nerfies/releases/tag/0.1"
-                                       class="external-link button is-normal is-rounded is-dark">
-                                        <span class="icon">
-                                            <i class="far fa-images"></i>
-                                        </span>
-                                        <span>Data</span>
-                                    </a>
-                            </div>
-
+                        <div class="publication-links">
+                            <span class="link-block">
+                                <a href="https://arxiv.org/abs/2011.12948" class="external-link button is-normal is-rounded is-dark">
+                                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                                    <span>arXiv</span>
+                                </a>
+                            </span>
+                            <span class="link-block">
+                                <a href="https://github.com/google/nerfies" class="external-link button is-normal is-rounded is-dark">
+                                    <span class="icon"><i class="fab fa-github"></i></span>
+                                    <span>Code</span>
+                                </a>
+                            </span>
+                            <span class="link-block">
+                                <a href="https://github.com/google/nerfies/releases/tag/0.1" class="external-link button is-normal is-rounded is-dark">
+                                    <span class="icon"><i class="far fa-images"></i></span>
+                                    <span>Data</span>
+                                </a>
+                            </span>
                         </div>
+
                     </div>
                 </div>
+
+                <!-- Teaser video -->
+                <div class="teaser-video-wrap" style="margin-top:2.5rem;">
+                    <video id="teaser" autoplay muted loop playsinline>
+                        <source src="./static/videos/teaser.mp4" type="video/mp4">
+                    </video>
+                </div>
+
             </div>
         </div>
     </section>
 
-    <section class="hero teaser">
+
+    <!-- ══════════════════════════════════════
+         ABSTRACT
+    ══════════════════════════════════════ -->
+    <section class="paper-section">
         <div class="container is-max-desktop">
-            <div class="hero-body">
-                <video id="teaser" autoplay muted loop playsinline height="100%">
-                    <source src="./static/videos/teaser.mp4"
-                            type="video/mp4">
-                </video>
-                <h2 class="subtitle has-text-centered">
-                    Turn videos from your smartphone into robot policies.
-                </h2>
-            </div>
-        </div>
-    </section>
-
-
-    <section class="hero is-light is-small">
-        <div class="hero-body">
-            <div class="container">
-                <div id="results-carousel" class="carousel results-carousel">
-                    <div class="item item-steve">
-                        <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/steve.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-chair-tp">
-                        <video poster="" id="chair-tp" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/chair-tp.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-shiba">
-                        <video poster="" id="shiba" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/shiba.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-fullbody">
-                        <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/fullbody.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-blueshirt">
-                        <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/blueshirt.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-mask">
-                        <video poster="" id="mask" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/mask.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-coffee">
-                        <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/coffee.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="item item-toby">
-                        <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/toby2.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <section class="section">
-        <div class="container is-max-desktop">
-            <!-- Abstract. -->
-            <div class="columns is-centered has-text-centered">
-                <div class="column is-four-fifths">
-                    <h2 class="title is-3">Abstract</h2>
-                    <div class="content has-text-justified">
-                        <p>
-                            The common sense reasoning capabilities of Vision
-                            Language Models (VLMs) have been leveraged in recent works
-                            to learn robotic tasks from human video demonstrations.
-                            Several state-of-the-art methods extract a subset of keyframes
-                            from the video by isolating the time instants where hand
-                            speed minima is close to zero. However, this approach works
-                            only for simple pick-and-place tasks, and it also results in
-                            the incorrect interpretation of the action performed in the
-                            demonstration. In this work, we design a cost function to
-                            combine the contributions of certain key features from the video
-                            demonstration, and we extract the keyframes corresponding to
-                            the local minima of the cost function. The extracted keyframes
-                            are then processed by a VLM to learn the correct sequence
-                            of actions to replicate the task.
-                        </p>
-                        <p>
-                            To validate our approach, we collect a set of long-horizon human videos demonstrating a
-                            series of tasks comprising: pick-and-place, peg-in-hole insertion,
-                            cube stacking and handling of deformable objects. We com-
-                            prehensively benchmark our method against several baselines,
-                            including state-of-the-art video input VLMs. The experiments
-                            demonstrate the superior performance of our method in both
-                            a simulation environment and on a real robot arm.
-                        </p>
-                        <p>
-                            Altro paragrafo <span class="dnerf">Nerfies</span> caratteri <i>"nerfies"</i>.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <!--/ Abstract. -->
-            <!-- Paper video. -->
-            <div class="columns is-centered has-text-centered">
-                <div class="column is-four-fifths">
-                    <h2 class="title is-3">Video</h2>
-                    
-                </div>
-            </div>
-            <!--/ Paper video. -->
-        </div>
-    </section>
-
-
-    <section class="section">
-        <div class="container is-max-desktop">
-
             <div class="columns is-centered">
-
-                <!-- Visual Effects. -->
-                <div class="column">
-                    <div class="content">
-                        <h2 class="title is-3">Colonna sinistra</h2>
+                <div class="column is-four-fifths">
+                    <!--<span class="section-label">Overview</span>-->
+                    <h2 class="section-title">Abstract</h2>
+                    <div class="abstract-text">
                         <p>
-                            Esempi video applicazione
+                            Human videos are a promising way of collecting simple yet information-dense demonstrations for robotic manipulation.
+                            Vision-Language Models have recently emerged as an effective way to interpret long videos and image sequences,
+                            but this process is lengthy and produces low quality results that are not applicable to robotic manipulation.
                         </p>
-                        <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
-                            <source src="./static/videos/.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                </div>
-                <!--/ Visual Effects. -->
-                <!-- Matting. -->
-                <div class="column">
-                    <h2 class="title is-3">Colonna destra</h2>
-                    <div class="columns is-centered">
-                        <div class="column content">
-                            <p>
-                                esempi video 2
-                            </p>
-                            <video id="matting-video" controls playsinline height="100%">
-                                <source src="./static/videos/.mp4"
-                                        type="video/mp4">
-                            </video>
-                        </div>
-
+                        <p>
+                            In this work, we propose a novel methodology for task learning from long-horizon human video demonstrations.
+                            The proposed hand-object interaction identifier is robust to partial hand occlusions and can infer interactions
+                            even when hand keypoints are not visible or the hand moves erratically.
+                            A subset of keyframes is extracted from the video demonstration based on the minimization of a cost function.
+                        </p>
+                        <p>
+                            A Vision-Language Model is then used to learn a structured PDDL task plan to be used during test time.
+                            We demonstrate that our approach outperforms state-of-the-art baselines both in simulation and on a real robot arm.
+                            We evaluate the proposed methodology on an unmanned robotic platform and observe significant improvements over
+                            state-of-the-art baselines in sorting and block-stacking tasks.
+                            Our experiments highlight the importance of incorporating interaction force feedback during task execution.
+                        </p>
                     </div>
                 </div>
             </div>
-            <!--/ Matting. -->
-            <!-- Animation. -->
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         GRAPHIC ABSTRACT
+    ══════════════════════════════════════ -->
+    <section class="paper-section" style="background: white;">
+        <div class="container is-max-desktop">
+            <h2 class="section-title">Summary</h2>
+            <div class="graphic-abstract-wrap">
+                <!-- Replace with your actual graphical abstract image -->
+                <img src="./static/images/schema_metodo.png" alt="Graphical abstract of the proposed method" />
+                <p class="graphic-abstract-caption">
+                    Figure 1. Overview of the proposed pipeline: from raw human video demonstrations to executable robot task plans
+                    via interaction-aware keyframe selection and VLM-based planning.
+                </p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         METHOD
+    ══════════════════════════════════════ -->
+
+    <section class="paper-section">
+        <div class="container is-max-desktop">
+            <span class="section-label">Approach</span>
+            <h2 class="section-title">Method</h2>
+
+            <div class="method-steps">
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Human Video Demonstrations</h4>
+                        <p>
+                            Long-horizon video demonstrations are recorded as raw human videos using standard RGB cameras.
+                            No robot teleoperation or specialized equipment is required.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step1.png" alt="Human Video Demonstrations" />
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Cost function evaluation</h4>
+                        <p>
+                            Hand motion and object tracking are extracted from the video, and a cost function is evaluated at each frame.
+                            The cost function takes into account several aspects of relative hand-object motion.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step2.png" alt="Cost function evaluation" />
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Hand-object interaction probability</h4>
+                        <p>
+                            Hand-object interaction probabilities are computed from the cost function by normalizing the values using a softmax operation.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step3.png" alt="Hand-object interaction probability" />
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Keyframe extraction</h4>
+                        <p>
+                            The video frames with the highest hand-object interaction probabilities are extracted and used for VLM reasoning.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step4.png" alt="Keyframe extraction" />
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Vision-Language Task Planning</h4>
+                        <p>
+                            The selected keyframes are fed to a VLM together with structured prompts.
+                            The VLM produces a PDDL task plan representing the high-level symbolic structure of the task,
+                            which is later used to guide robot execution.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step5.png" alt="Vision-Language Task Planning" />
+                    </div>
+                </div>
+
+                <div class="method-step">
+                    <div class="step-number"></div>
+                    <div class="step-content">
+                        <h4>Robot Execution</h4>
+                        <p>
+                            At test time, the robot follows the learned PDDL plan.
+                            The task pan is adapted to the specific scene thanks to object localization and VLM reasoning.
+                        </p>
+                    </div>
+                    <div class="step-image">
+                        <img src="./static/images/method_step6.png" alt="Robot Execution" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- VLM Prompts -->
+    <section class="paper-section">
+        <div class="container is-max-desktop">
+            <!--<hr class="method-divider" style="margin-top:3rem;">-->
+            <div style="margin-top:2rem;">
+                <p class="section-title">VLM Prompts</p>
+                <p style="font-size:0.93rem; color:#444; margin-bottom:1.5rem;">
+                    The following prompts are used to query the Vision-Language Model at each stage of the pipeline.
+                    Keyframe images are provided as visual context alongside each prompt.
+                </p>
+
+                <!-- Prompt cards -->
+                <div style="display:grid; gap:1rem;">
+
+                    <div style="border:1px solid var(--rule); border-radius:6px; overflow:hidden; background:white;">
+                        <div style="padding:0.6rem 1rem; background:var(--ink); display:flex; align-items:center; gap:0.6rem;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--accent-light); letter-spacing:0.1em; text-transform:uppercase;">Prompt 1 · Scene Understanding</span>
+                        </div>
+                        <pre style="margin:0; padding:1rem 1.2rem; font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:#333; white-space:pre-wrap; line-height:1.6; background:white; border:none;">You are analyzing a sequence of keyframes from a human demonstration of a manipulation task.
+Describe the objects present in the scene and their spatial relationships.
+Focus on objects that are being actively manipulated by the human hand.</pre>
+                    </div>
+
+                    <div style="border:1px solid var(--rule); border-radius:6px; overflow:hidden; background:white;">
+                        <div style="padding:0.6rem 1rem; background:var(--ink); display:flex; align-items:center; gap:0.6rem;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--accent-light); letter-spacing:0.1em; text-transform:uppercase;">Prompt 2 · Action Grounding</span>
+                        </div>
+                        <pre style="margin:0; padding:1rem 1.2rem; font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:#333; white-space:pre-wrap; line-height:1.6; background:white; border:none;">Given the keyframes and the scene description, identify the sequence of atomic actions performed.
+For each action, specify: action type (grasp / place / push / …), object involved, and pre/post conditions.
+Return the result as a structured PDDL action sequence.</pre>
+                    </div>
+
+                    <div style="border:1px solid var(--rule); border-radius:6px; overflow:hidden; background:white;">
+                        <div style="padding:0.6rem 1rem; background:var(--ink); display:flex; align-items:center; gap:0.6rem;">
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--accent-light); letter-spacing:0.1em; text-transform:uppercase;">Prompt 3 · PDDL Plan Generation</span>
+                        </div>
+                        <pre style="margin:0; padding:1rem 1.2rem; font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:#333; white-space:pre-wrap; line-height:1.6; background:white; border:none;">Based on the identified action sequence, generate a complete PDDL problem file.
+Include: objects, init state, goal state, and the ordered action plan.
+The output must be syntactically valid PDDL and directly executable by a task planner.</pre>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         DEMONSTRATIONS
+    ══════════════════════════════════════ -->
+    <section class="paper-section" style="background:white;">
+        <div class="container is-max-desktop">
+            <!-- <span class="section-label">Qualitative Results</span>-->
+            <h2 class="section-title">Demonstrations</h2>
+            <p style="color:#444; font-size:0.95rem; margin-bottom:2rem; max-width:640px;">
+                Demonstrations for each task are acquired and shown below.
+
+            </p>
+
+            <!-- Sub-section: Sorting task -->
+            <p class="subsection-title">Sorting Tasks</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Block Sorting</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_sorting_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Garment Sorting</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_sorting_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Block stacking task -->
+            <p class="subsection-title">Stacking Tasks</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Block stacking</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Bowl stacking</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Insertion task -->
+            <p class="subsection-title">Insertion Task</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Demo A</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Demo B</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Tool usage task -->
+            <p class="subsection-title">Tool usage Task</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Demo A</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Demo B</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+        </div>
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         ROBOT EXECUTION
+    ══════════════════════════════════════ -->
+    <section class="paper-section">
+        <div class="container is-max-desktop">
+            <h2 class="section-title">Robot Execution</h2>
+            <p style="color:#444; font-size:0.95rem; margin-bottom:2rem; max-width:640px;">
+                Execution of the learned task plans on a real ABB GoFa robot arm.
+            </p>
+
+            <!-- Featured execution video -->
+            <!--<div style="margin-bottom:2.5rem;">
+                <p class="subsection-title">Featured Execution</p>
+                <div class="video-card" style="max-width:700px; margin:0 auto;">
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/robot_execution_main.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-card-caption" style="font-size:0.85rem;">
+                        Full execution of a three-step sorting task on a real robot arm, guided by the VLM-generated PDDL plan.
+                    </div>
+                </div>
+            </div>-->
+
+            <!-- Sub-section: Sorting task -->
+            <p class="subsection-title">Sorting Tasks</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Block Sorting</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_sorting_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Garment Sorting</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_sorting_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Block stacking task -->
+            <p class="subsection-title">Stacking Tasks</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Block stacking</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Bowl stacking</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Insertion task -->
+            <p class="subsection-title">Insertion Task</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Demo A</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Demo B</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Sub-section: Tool usage task -->
+            <p class="subsection-title">Tool usage Task</p>
+            <div class="video-grid cols-2" style="margin-bottom:2.5rem;">
+                <div class="video-card">
+                    <span class="video-card-label">Demo A</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="video-card">
+                    <span class="video-card-label">Demo B</span>
+                    <video autoplay controls muted loop playsinline>
+                        <source src="./static/videos/demo_stacking_2.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+            </div>
+</section>
+
+
+    <!-- ══════════════════════════════════════
+         ACKNOWLEDGEMENTS
+    ══════════════════════════════════════ -->
+    <section class="paper-section" style="background:white;" id="Acknowledgements">
+        <div class="container is-max-desktop">
             <div class="columns is-centered">
-                <div class="column is-full-width">
-                    <h2 class="title is-3">Animation</h2>
-
-                    <!-- Interpolating. -->
-                    <h3 class="title is-4">Interpolating states</h3>
-                    <div class="content has-text-justified">
-                        <p>
-                            We can also animate the scene by interpolating the deformation latent codes of two input
-                            frames. Use the slider here to linearly interpolate between the left frame and the right
-                            frame.
-                        </p>
-                    </div>
-                    <div class="columns is-vcentered interpolation-panel">
-                        <div class="column is-3 has-text-centered">
-                            <img src="./static/images/interpolate_start.jpg"
-                                 class="interpolation-image"
-                                 alt="Interpolate start reference image." />
-                            <p>Start Frame</p>
-                        </div>
-                        <div class="column interpolation-video-column">
-                            <div id="interpolation-image-wrapper">
-                                Loading...
-                            </div>
-                            <input class="slider is-fullwidth is-large is-info"
-                                   id="interpolation-slider"
-                                   step="1" min="0" max="100" value="0" type="range">
-                        </div>
-                        <div class="column is-3 has-text-centered">
-                            <img src="./static/images/interpolate_end.jpg"
-                                 class="interpolation-image"
-                                 alt="Interpolation end reference image." />
-                            <p class="is-bold">End Frame</p>
-                        </div>
-                    </div>
-                    <br />
-                    <!--/ Interpolating. -->
-                    <!-- Re-rendering. -->
-                    <h3 class="title is-4">Re-rendering the input video</h3>
-                    <div class="content has-text-justified">
-                        <p>
-                            Using <span class="dnerf">Nerfies</span>, you can re-render a video from a novel
-                            viewpoint such as a stabilized camera by playing back the training deformations.
-                        </p>
-                    </div>
-                    <div class="content has-text-centered">
-                        <video id="replay-video"
-                               controls
-                               muted
-                               preload
-                               playsinline
-                               width="75%">
-                            <source src="./static/videos/replay.mp4"
-                                    type="video/mp4">
-                        </video>
-                    </div>
-                    <!--/ Re-rendering. -->
-
+                <div class="column is-four-fifths">
+                    <h2 class="section-title">Acknowledgements</h2>
+                    <p class="ack-text">
+                        The work was supported by --- <!-- Add funding info here -->.
+                    </p>
                 </div>
             </div>
-            <!--/ Animation. -->
-
-        </div>
-    </section>
-
-    <section class="section" id="Acknowledgements">
-        <div class="container is-max-desktop content">
-            <h2 class="title">Acknowledgements</h2>
-            The work was supported by ...
         </div>
     </section>
 
 
-    <section class="section" id="BibTeX">
+    <!-- ══════════════════════════════════════
+         BIBTEX
+    ══════════════════════════════════════ -->
+    <section class="paper-section" id="BibTeX">
         <div class="container is-max-desktop content">
-            <h2 class="title">BibTeX</h2>
-            <pre><code>@misc{giacobbe2026vlmkeyframehoi,
-  author    = {Giacobbe, Arturo and Roveda, Loris and Braghin, Francesco},
-  title     = {titolo},
-  journal   = {},
-  year      = {2026},
+            <div class="columns is-centered">
+                <div class="column is-four-fifths">
+                    <span class="section-label">Citation</span>
+                    <h2 class="section-title">BibTeX</h2>
+                    <div class="bibtex" id="bibtex-block">
+                        <!--<button class="bibtex-copy-btn" onclick="copyBibtex()">Copy</button>-->
+                        <pre><code>@misc{giacobbe2026vlmkeyframehoi,
+    author    = {Giacobbe, Arturo and Roveda, Loris and Braghin, Francesco},
+    title     = {Learning Long-Horizon Robotic Manipulation from Human Videos
+    via Interaction-Aware Keyframe Selection and Vision-Language Planning},
+    journal   = {arXiv preprint},
+    year      = {2026},
 }</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
+    <!-- ══════════════════════════════════════
+         FOOTER
+    ══════════════════════════════════════ -->
     <footer class="footer">
-        <div class="container">
-            <div class="content has-text-centered">
-            </div>
-            <div class="columns is-centered">
-                <div class="column is-8">
-                    <div class="content">
-                        <p>
-                            This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
-                                Creative
-                                Commons Attribution-ShareAlike 4.0 International License
-                            </a>.
-                            This webpage template is from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>.
-                        </p>
-                    </div>
-                </div>
-                <p></p>
-            </div>
-        </div>
+        <p>
+            Website template adapted from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
+            licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+        </p>
     </footer>
+
+    <script>
+        //function copyBibtex() {
+        //    const text = document.getElementById('bibtex-text').innerText;
+        //    navigator.clipboard.writeText(text).then(() => {
+        //        const btn = document.querySelector('.bibtex-copy-btn');
+        //        btn.textContent = 'Copied!';
+        //        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+        //    });
+        //}
+
+        // Responsive method layout
+        function fixMethodLayout() {
+            const layout = document.querySelector('.method-layout');
+            if (!layout) return;
+            if (window.innerWidth < 900) {
+                layout.style.gridTemplateColumns = '1fr';
+            } else {
+                layout.style.gridTemplateColumns = '1fr 1fr';
+            }
+        }
+        window.addEventListener('resize', fixMethodLayout);
+        fixMethodLayout();
+    </script>
 
 </body>
 </html>
